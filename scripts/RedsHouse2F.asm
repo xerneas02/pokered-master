@@ -54,9 +54,9 @@ CustomBattleEvent:
 
    ; Randomly get a number between 0 and 4
     call Random                ; A = random number
-    and 4                    ; Now A is in the range 0 to 4
+    and 4              ; Now A is in the range 0 to 4
 
-    jp .setLorelei
+    jp .setRival
 
 .setLorelei:
     ld a, OPP_LORELEI          ; LORELEI constant defined in trainer_constants.asm
@@ -81,6 +81,13 @@ CustomBattleEvent:
 
 .setLance:
     ld a, OPP_LANCE            ; constant for Lance
+    ld [wEngagedTrainerClass], a
+    ld a, 1                ; sample set for Lance
+    ld [wEngagedTrainerSet], a
+    jr .startBattle
+
+.setRival:
+    ld a, OPP_RIVAL3           ; constant for Lance
     ld [wEngagedTrainerClass], a
     ld a, 1                ; sample set for Lance
     ld [wEngagedTrainerSet], a

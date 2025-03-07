@@ -1,7 +1,7 @@
 from pyboy import PyBoy
 from pynput import keyboard
-import AccessMemory
-
+from Constante import *
+from AccessMemory import *
 # Path to the compiled ROM file
 rom_path = "pokered.gbc"
 
@@ -19,6 +19,15 @@ key_mapping = {
 
 # Store the currently pressed keys
 keys_pressed = set()
+
+# Global battle state variables
+inBattle = False
+nbBattle = 0
+
+def save_game_state(pyboy, filename):
+    with open(filename, "wb") as f:
+        pyboy.save_state(f)
+    print(f"Game state saved to {filename}")
 
 # Function to handle key press events
 def on_press(key):
@@ -50,15 +59,27 @@ while running:
     pyboy.tick()
 
     # Check which keys are pressed and send the corresponding action to the game
-    
     for action in keys_pressed.copy():
         pyboy.button(action)
     
     if (i % 4) == 0:
-        #pyboy.button("a")
         pass
     i += 1
-    print(AccessMemory.get_pos(pyboy))
+
+    # Example: use AccessMemory to detect if a battle has started.
+    # Here we assume that if AccessMemory.get_enemy_id(pyboy) returns a non-zero value,
+    # a battle has begun. (Adjust the condition and function as needed.)
+    # You need to implement or adjust this function
+    if not inBattle and pyboy.memory[ENEMY_POKEMONS[0]] != 0 :
+        inBattle = True
+        nbBattle += 1
+        # Save the game state with a unique filename for this battle
+        save_game_state(pyboy, f"State/battle_{nbBattle}.state")
+    elif inBattle and pyboy.memory[ENEMY_POKEMONS[0]] == 0:
+        # Battle is over, reset inBattle flag
+        inBattle = False
+
+    print(get_pos(pyboy))
 
     # Check if the listener is still running
     if not listener.running:
