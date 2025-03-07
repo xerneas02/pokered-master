@@ -73,42 +73,33 @@ EndOfBattle:
 	ld a, $ff
 	ld [wDestinationWarpID], a
 
-    ; --- Début ajout : sélection d'un dresseur aléatoire ---
-    call Random                ; retourne un nombre aléatoire dans A
-    and 3                    ; limiter à 0–3
-    cp 0
-    jp z, .setTrainer0
-    cp 1
-    jp z, .setTrainer1
-    cp 2
-    jp z, .setTrainer2
-    ; sinon, valeur 3
-.setTrainer3:
-    ld a, OPP_SAILOR         ; Using defined constant for fallback trainer
+.setLorelei:
+    ld a, OPP_LORELEI          ; LORELEI constant defined in trainer_constants.asm
     ld [wEngagedTrainerClass], a
-    ld a, 4                   ; Example "mon set"
+    ld a, 1              ; sample set for Lorelei
     ld [wEngagedTrainerSet], a
     jr .continueBattle
 
-.setTrainer0:
-    ld a, OPP_YOUNGSTER         ; Using defined constant for second trainer
+.setBruno:
+    ld a, OPP_BRUNO            ; constant for Bruno
     ld [wEngagedTrainerClass], a
-    ld a, 5                   ; Example "mon set"
+    ld a, 1                ; sample set for Bruno
     ld [wEngagedTrainerSet], a
     jr .continueBattle
 
-.setTrainer1:
-    ld a, OPP_BUG_CATCHER         ; Using defined constant for third trainer
+.setAgatha:
+    ld a, OPP_AGATHA           ; constant for Agatha
     ld [wEngagedTrainerClass], a
-    ld a, 3
+    ld a, 1                ; sample set for Agatha
     ld [wEngagedTrainerSet], a
     jr .continueBattle
 
-.setTrainer2:
-    ld a, OPP_LASS         ; Using defined constant for fourth trainer
+.setLance:
+    ld a, OPP_LANCE            ; constant for Lance
     ld [wEngagedTrainerClass], a
-    ld a, 2
+    ld a, 1                ; sample set for Lance
     ld [wEngagedTrainerSet], a
+    jr .continueBattle
 
 .continueBattle:
     ; --- Reset input state so menu navigation works correctly ---

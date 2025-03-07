@@ -34,11 +34,12 @@ RedsHouse2F_TextPointers:
 
 ; Example: verify the player's position (4,6)
 CheckIfCustomBattleShouldTrigger:
-    ;ld a,($D361)         ; current player X coordinate
-    ;cp $04                    ; compare with fixed coordinate 4
+	
+    ;ld a,[$D361]         ; current player X coordinate
+	;cp $04                    ; compare with fixed coordinate 4
     ;jr nz, .exitCheck
 
-    ;ld a,($D362)         ; current player Y coordinate
+    ;ld a,[$D362]         ; current player Y coordinate
     ;cp $06                    ; compare with fixed coordinate 6
     ;jr nz, .exitCheck
 
@@ -51,61 +52,75 @@ CustomBattleEvent:
     ; (Optional) Display a message or animation
     call ClearScreen
 
-    ; --- Random opponent selection ---
-    call Random                ; returns a random number in A
-    and 3                    ; limit the value to 0-3
-    cp 0
-    jp z, .setTrainer0
-    cp 1
-    jp z, .setTrainer1
-    cp 2
-    jp z, .setTrainer2
-    ; Otherwise, use value 3:
-.setTrainer3:
-    ld a, OPP_SAILOR         ; use constant for SAILOR
+   ; Randomly get a number between 0 and 4
+    call Random                ; A = random number
+    and 4                    ; Now A is in the range 0 to 4
+
+    jp .setLorelei
+
+.setLorelei:
+    ld a, OPP_LORELEI          ; LORELEI constant defined in trainer_constants.asm
     ld [wEngagedTrainerClass], a
-    ld a, 4                  ; sample "mon set" for SAILOR
+    ld a, 1                ; sample set for Lorelei
     ld [wEngagedTrainerSet], a
     jr .startBattle
 
-.setTrainer0:
-    ld a, OPP_YOUNGSTER      ; use constant for YOUNGSTER
+.setBruno:
+    ld a, OPP_BRUNO            ; constant for Bruno
     ld [wEngagedTrainerClass], a
-    ld a, 5                  ; sample "mon set" for YOUNGSTER
+    ld a, 1               ; sample set for Bruno
     ld [wEngagedTrainerSet], a
     jr .startBattle
 
-.setTrainer1:
-    ld a, OPP_BUG_CATCHER      ; use constant for BUG_CATCHER
+.setAgatha:
+    ld a, OPP_AGATHA           ; constant for Agatha
     ld [wEngagedTrainerClass], a
-    ld a, 3                  ; sample "mon set" for BUG_CATCHER
+    ld a, 1                ; sample set for Agatha
     ld [wEngagedTrainerSet], a
     jr .startBattle
 
-.setTrainer2:
-    ld a, OPP_LASS           ; use constant for LASS
+.setLance:
+    ld a, OPP_LANCE            ; constant for Lance
     ld [wEngagedTrainerClass], a
-    ld a, 2                  ; sample "mon set" for LASS
+    ld a, 1                ; sample set for Lance
+    ld [wEngagedTrainerSet], a
+    jr .startBattle
 
 .startBattle:
-    ; --- Reset de l'etat d'input (si necessaire) ---
-    xor a
+    ; --- Reset input state, if needed ---
+
+    ; Clear the player's team
+    
+
+    ; Add Rattata at level 10
+    ;ld a, RATTATA          ; will be defined elsewhere
+    ;ld [wCurPartySpecies], a
+    ;ld a, $0A              ; level 10
+    ;xor a
+    ;ld [wMonDataLocation], a
+    ;call _AddPartyMon
+
+    ; Add Charmander at level 10
+    ;ld a, CHARMANDER       ; will be defined elsewhere
+    ;ld [wCurPartySpecies], a
+    ;ld a, $0A              ; level 10
+    ;xor a
+    ;ld [wMonDataLocation], a
+    ;call _AddPartyMon
+
+	ld c, 60
+    call DelayFrames
+
+	xor a
     ld [wJoyIgnore], a
     ld [wSimulatedJoypadStatesIndex], a
     ld [wSimulatedJoypadStatesEnd], a
     ld [wIsInBattle], a
 
-    ; Mettre le niveau du premier Pokémon du joueur au meme niveau que le dresseur.
-    ; Ici, on suppose que la valeur choisie (ex : 5 pour un jeune dresseur) est
-    ; stockée dans wEngagedTrainerSet.
-    ld a, [$D8C5]
-    ld [$D16E], a
-
-    ; Optionnel : ajouter un delai
-    ld c, 60
+	ld c, 60
     call DelayFrames
 
-    ; Demarrer le combat
+    ; Start the battle
     call StartTrainerBattle
     ret
 
@@ -176,7 +191,7 @@ DebugDisplayPlayerPos:
     call PrintText
 
     ; Load player X coordinate in A
-    ld a, ($D361)
+    ld a, [$D361]
     call ConvertByteToStr     ; converts A into string at DebugBuffer
     ld hl, DebugBuffer
     call PrintText
@@ -186,7 +201,7 @@ DebugDisplayPlayerPos:
     call PrintText
 
     ; Load player Y coordinate in A
-    ld a, ($D362)
+    ld a, [$D362]
     call ConvertByteToStr
     ld hl, DebugBuffer
     call PrintText
@@ -200,3 +215,32 @@ DebugYLabel:
 ; Define a buffer for our number conversion (example, 4 bytes)
 DebugBuffer:
     ds 4
+
+; ClearPlayerTeam:
+; Sets the player's party count to 0 (clearing the team)
+ClearPlayerTeam:
+    ld hl, wPartyCount
+    xor a            ; set A = 0
+    ld [hl], a      ; party count ← 0 (empty team)
+    ret
+
+; CopyOpponentTeamToPlayer:
+; Copies all entries from the opponent team (assumed stored at wEnemyMons)
+; into the player's party (wPartyMons) and updates the party count.
+; PARTY_LENGTH is the number of Pokémon in the team (e.g. 6)
+CopyOpponentTeamToPlayer:
+    ld bc, PARTY_LENGTH   ; number of Pokémon to copy
+    ld hl, wEnemyMons     ; source pointer: opponent team data (e.g., species IDs)
+    ld de, wPartyMons     ; destination pointer: player's party list
+CopyOppLoop:
+    ld a, [hl]
+    ld [de], a
+    inc hl
+    inc de
+    dec bc
+    jr nz, CopyOppLoop
+    ; Update the party count with PARTY_LENGTH
+    ld a, PARTY_LENGTH
+    ld hl, wPartyCount
+    ld [hl], a
+    ret

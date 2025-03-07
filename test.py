@@ -44,14 +44,20 @@ listener.start()
 
 # Run the emulator until 'Esc' is pressed
 running = True
+i = 0
 while running:
     # Run the emulator for one frame
     pyboy.tick()
 
     # Check which keys are pressed and send the corresponding action to the game
+    
     for action in keys_pressed.copy():
         pyboy.button(action)
     
+    if (i % 4) == 0:
+        #pyboy.button("a")
+        pass
+    i += 1
     print(AccessMemory.get_pos(pyboy))
 
     # Check if the listener is still running
