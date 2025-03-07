@@ -43,6 +43,16 @@ PrepareOakSpeech:
     ; Skip Oak speech
     ; jp SkipOakSpeech
 
+    call GBFadeOutToWhite
+    call ClearScreen
+    ; Initialiser les données du dresseur engagé
+    ld a, OPP_RIVAL1          ; définir la classe du dresseur (constante définie ailleurs)
+    ld [wEngagedTrainerClass], a
+    ld a, /* mon set pour ce dresseur */ 4  ; par exemple, 4 correspond au trainer mon set désiré
+    ld [wEngagedTrainerSet], a
+    ; Lancer le combat
+    call StartTrainerBattle
+
 PlayerNameRed:
     db "RED@"
 

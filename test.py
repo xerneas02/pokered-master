@@ -1,5 +1,6 @@
 from pyboy import PyBoy
 from pynput import keyboard
+import AccessMemory
 
 # Path to the compiled ROM file
 rom_path = "pokered.gbc"
@@ -50,6 +51,8 @@ while running:
     # Check which keys are pressed and send the corresponding action to the game
     for action in keys_pressed.copy():
         pyboy.button(action)
+    
+    print(AccessMemory.get_pos(pyboy))
 
     # Check if the listener is still running
     if not listener.running:
